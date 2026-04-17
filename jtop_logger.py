@@ -5,14 +5,14 @@ import pandas as pd
 from std_msgs.msg import Bool, Float32
 
 class JtopLogger(IModule):
-    def __init__(self, debug: bool, config: dict, logger, create_timer, create_publisher) -> None:
-        super().__init__(debug, config, logger, create_timer, create_publisher)
+    def __init__(self, debug: bool, start_state: AsState, config: dict, logger, create_timer, create_publisher) -> None:
+        super().__init__(debug, start_state, config, logger, create_timer, create_publisher)
 
         # ====== config ======
         self._jtop_timer = self._create_timer(1.0, self.jtop_timer_callback)
         self._jtop_timer.cancel()  # Start with timer stopped
-        self._current_state = None
         self._jetson = None
+        self._df_published = False
         self._data = []
         
         self._output_path = config['output_path']
@@ -44,7 +44,7 @@ class JtopLogger(IModule):
             self._jtop_timer.cancel()
         if self._jetson is not None:
             self._jetson.close()
-        if self._data:
+        if self._data and not self._df_published:
             self._save_to_csv()
 
     # ====== internal methods ======
@@ -74,6 +74,7 @@ class JtopLogger(IModule):
 
         df = pd.DataFrame(self._data)
         df.to_csv(self._output_path, index=False)
+        self._df_published = True
         if self._debug:
             self._logger.info(f'Saved {len(df)} rows to {self._output_path}')
 
