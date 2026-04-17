@@ -10,7 +10,7 @@ class AsState(IntEnum):
     EMERGENCY = 5
 
 class IModule(ABC):
-    def __init__(self, debug: bool, config: dict, logger, create_timer) -> None:
+    def __init__(self, debug: bool, config: dict, logger, create_timer, create_publisher) -> None:
         super().__init__()
         self._debug = debug
         self._config = config
@@ -19,7 +19,8 @@ class IModule(ABC):
         self._stop_on_state = AsState(config['stop_on_state'])
         self._logger = logger
         self._create_timer = create_timer
-
+        self._create_publisher = create_publisher
+        
     @abstractmethod
     def _module_init(self) -> None:
         """Initialize the module."""    # not a class constructor
