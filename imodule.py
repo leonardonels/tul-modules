@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import IntEnum
+from rclpy.node import Node
 
 class AsState(IntEnum):
     IDLE = 0
@@ -10,16 +11,14 @@ class AsState(IntEnum):
     EMERGENCY = 5
 
 class IModule(ABC):
-    def __init__(self, debug: bool, start_state: AsState, config: dict, logger, create_timer, create_publisher) -> None:
+    def __init__(self, debug: bool, start_state: AsState, config: dict, node: Node) -> None:
         super().__init__()
         self._debug = debug
         self._config = config
         self._init_on_state =AsState(config['init_on_state'])
         self._start_on_state = AsState(config['start_on_state'])
         self._stop_on_state = AsState(config['stop_on_state'])
-        self._logger = logger
-        self._create_timer = create_timer
-        self._create_publisher = create_publisher
+        self._node = node
         self._current_state = start_state
         
     @abstractmethod
@@ -52,8 +51,6 @@ class IModule(ABC):
             self._module_stop()
     
     def on_state_change(self, state) -> None:
-        if self._debug:
-            self._logger.info(f"[jtop_logger]: on_state_change called with state: {state}")
         match state:
             case AsState.IDLE:
                 if not self._next_state_is_correct(state): return
