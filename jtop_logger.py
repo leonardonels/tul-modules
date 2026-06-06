@@ -29,12 +29,19 @@ class JtopLogger(IModule):
         try:
             self._jetson = jtop()
             self._jetson.start()
-            self._node.get_logger().info("[jtop_logger]: Successfully connected to Jetson hardware monitor.")
+            if self._start_on_state <= self._start_state:
+                self._node.get_logger().info("[jtop_logger]: Successfully connected to Jetson hardware monitor. Module jump-initialized.")
+            else:
+                self._node.get_logger().info("[jtop_logger]: Successfully connected to Jetson hardware monitor.")
         except Exception as e:
             self._node.get_logger().error(f"[jtop_logger]: Failed to connect to Jetson hardware monitor: {e}")
 
     def _module_start(self) -> None:
         self._jtop_timer.reset()    # Start logging
+        if self._start_on_state <= self._start_state:
+            self._node.get_logger().info("[jtop_logger]: Module jump-started.")
+        else:
+            self._node.get_logger().info("[jtop_logger]: Module started.")
 
     def _module_stop(self) -> None:
         if self.jtop_timer_callback is not None:

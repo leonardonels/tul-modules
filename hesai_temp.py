@@ -9,17 +9,23 @@ class HesaiTemp(IModule):
         
         #====== config ======
         self._lidar_temp_subscriber = None
-        self.lidar_temp_topic = config['lidar_temp_topic']
+        self._lidar_temp_topic = config['lidar_temp_topic']
         self._csv = CsvLogger(config['output_path'], node.get_logger())
     
     # ====== IModule methods ======
     def _module_init(self) -> None:
-        self._node.get_logger().info("[hesai_temp]: Module initialized.")
+        if self._start_on_state <= self._start_state:
+            self._node.get_logger().info("[hesai_temp]: Module jump-initialized.")
+        else:
+            self._node.get_logger().info("[hesai_temp]: Module initialized.")
 
     def _module_start(self) -> None:
-        self._lidar_temp_subscriber = self._node.create_subscription(DiagnosticArray, self.lidar_temp_topic, 
+        self._lidar_temp_subscriber = self._node.create_subscription(DiagnosticArray, self._lidar_temp_topic, 
                                                                      self.callback, qos_profile_sensor_data)
-        self._node.get_logger().info("[hesai_temp]: Module started.")
+        if self._start_on_state <= self._start_state:
+            self._node.get_logger().info("[hesai_temp]: Module jump-started.")
+        else:
+            self._node.get_logger().info("[hesai_temp]: Module started.")
 
     def _module_stop(self) -> None:
         if self._lidar_temp_subscriber is not None:

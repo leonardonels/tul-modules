@@ -19,7 +19,8 @@ class IModule(ABC):
         self._start_on_state = AsState(config['start_on_state'])
         self._stop_on_state = AsState(config['stop_on_state'])
         self._node = node
-        self._current_state = start_state
+        self._current_state = None
+        self._start_state = start_state
         
     @abstractmethod
     def _module_init(self) -> None:
@@ -35,7 +36,13 @@ class IModule(ABC):
     def _module_stop(self) -> None:
         """Stop the module. Called when the AS enters the stop_on_state."""
         pass
-    
+
+    def _jump_start(self) -> None:
+        while self._current_state != self._start_state:
+            if self._current_state is not None and self._current_state >= self._start_state:
+                return
+            self.on_state_change(self._current_state + 1 if self._current_state is not None else AsState.IDLE)
+
     def _next_state(self, state) -> IntEnum:
         return self._current_state + 1 if self._current_state is not None else AsState.IDLE
     
