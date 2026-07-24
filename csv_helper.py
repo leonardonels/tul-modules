@@ -5,7 +5,8 @@ import pandas as pd
 class CsvLogger:
     """Buffered CSV writer. Collect rows with append(), flush once with save()."""
 
-    def __init__(self, output_path: str, logger=None, unique: bool = True) -> None:
+    def __init__(self, module_name:str, output_path: str, logger=None, unique: bool = True) -> None:
+        self._module_name = module_name
         self._logger = logger
         self._data = []
         self._saved = False
@@ -26,13 +27,13 @@ class CsvLogger:
             return False
         if not self._data:
             if self._logger:
-                self._logger.warn('No data collected!')
+                self._logger.warn(f'[{self._module_name}]: No data collected!')
             return False
         df = pd.DataFrame(self._data)
         df.to_csv(self._output_path, index=False)
         self._saved = True
         if self._logger:
-            self._logger.info(f'Saved {len(df)} rows to {self._output_path}')
+            self._logger.info(f'[{self._module_name}]: Saved {len(df)} rows to {self._output_path}')
         return True
 
     @staticmethod

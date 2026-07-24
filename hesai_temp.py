@@ -10,7 +10,7 @@ class HesaiTemp(IModule):
         #====== config ======
         self._lidar_temp_subscriber = None
         self._lidar_temp_topic = config['lidar_temp_topic']
-        self._csv = CsvLogger(config['output_path'], node.get_logger())
+        self._csv = CsvLogger(self.__class__.__name__, config['output_path'], node.get_logger())
     
     # ====== IModule methods ======
     def _module_init(self) -> None:

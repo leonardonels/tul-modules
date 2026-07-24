@@ -12,7 +12,7 @@ class JtopLogger(IModule):
         self._jtop_timer = self._node.create_timer(1.0, self.jtop_timer_callback)
         self._jtop_timer.cancel()  # Start with timer stopped
         self._jetson = None
-        self._csv = CsvLogger(config['output_path'], node.get_logger())
+        self._csv = CsvLogger(self.__class__.__name__, config['output_path'], node.get_logger())
 
         self._publish_stats = config['publish_stats']
         if self._publish_stats:
