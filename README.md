@@ -1,5 +1,20 @@
-# tul-modules
-The greatest modules ever made.
+# tUL node - the Ultimate Logger node
+
+## Run
+```bash
+ros2 ros2 launch tul tul.launch.py
+```
+
+## Build
+```bash
+mkdir -p ros2_ws/src
+cd ros2_ws/src
+
+git clone https://github.com/leonardonels/tul.git --recurse-submodules
+
+colcon build --symlink-install --packages-select tul
+source install/setup.bash
+```
 
 ## Add more modules
 1. Create a new_module.py that extends the IModule interface.
@@ -75,12 +90,11 @@ if [[ ":$PYTHONPATH:" != *":/home/orin/.local/share/jtop/lib/python3.12/site-pac
 fi
 ```
 
+## Candump module - requirements
+```bash
+# update and install python-can requirements
+pip install python-can
+```
 
-# TODO
-- [ ] jtop module
-    - [x] save to csv
-    - [ ] hot topics publisher
-    - [ ] auto naming
-- [ ] rosbag module
-- [ ] pcap module
-- [x] shutdown module -> Nope! This is a logger node, not an orchestrator.
+# TODO:
+- [ ] allow the eventual orchestrator to kill this node to - no selftdestruction
