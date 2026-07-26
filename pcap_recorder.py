@@ -18,64 +18,43 @@ class pcap_recorder(IModule):
 
     def _module_init(self) -> None:
         if self._debug:
-            self._node.get_logger().info("[pcap_recorder]: INIT")
+            self._node.get_logger().info("[pcap_recorder] [DEBUG]: INIT")
 
 #       ===== PCAP INIT =====
-        self.pcap_dir = self.if_exists_return_value('pcap_dir', self.config, "./pcap/")
-        self.pcap_name = self.if_exists_return_value('pcap_name', self.config, "./pcap/")
+        self.pcap_dir = self.if_exists_return_value('pcap_dir', self.config, "/home/orin/logs/july-2026/pcap/")
+        self.pcap_name = self.if_exists_return_value('pcap_name', self.config, "tcpdump.pcap")
         self.use_id = self.if_exists_return_value('enable_ids', self.config, False)
         self.pcap_args = self.if_exists_return_value('pcap_args', self.config, "")
         self.timestamp_format = self.if_exists_return_value('date_format', self.config, "%Y%m%d_%H%M%S")
 
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: test1")
-
         self.module_stop = False
 
         # check if args contains illegal arguments
-        if re.match("*-w *", self.pcap_args):
+        if re.search(r"(^|\s)-w(\s|=|$)", self.pcap_args):
             self._node.get_logger().error("[pcap_recorder]: illegal arg in pcap_args. Specify pcap output filename inside pcap_name, not inside the pcap_args")
-
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: test1")
 
         # set pcap uri
         if self.pcap_dir[-1] != "/":
             self.pcap_dir = self.pcap_dir+"/"
             self._node.get_logger().warning(f"[pcap_recorder]: invalid pcap dir, must end with '/', saving as'{self.pcap_dir}'")
         self.uri = self.pcap_dir + self.pcap_name
-        
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: test2")
             
         if "/" in self.pcap_name:
             self.pcap_name = self.pcap_name.split("/")[-1]
             self._node.get_logger().warning(f"[pcap_recorder]: invalid pcap name, '/' not permited, saving as'{self.pcap_name}'")
         self.uri = self.pcap_dir + self.pcap_name
-        
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: test3")
             
         # set id
         if self.use_id:
             self.uri = self.uri + "__" + self.get_pcap_id()
-        
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: test4")
             
         # set timestamp
         if "TIMESTAMP" in self.uri:
             self.timestamp = datetime.now().strftime(self.timestamp_format)
             self.uri=self.uri.replace("TIMESTAMP",self.timestamp)
-
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: test4")
             
         # create dir
         os.makedirs(self.pcap_dir,exist_ok=True)
-
-        if self._debug:
-            self._node.get_logger().info("---> [pcap_recorder]: fin")
             
 
 
@@ -84,7 +63,7 @@ class pcap_recorder(IModule):
             self._node.get_logger().info("[pcap_recorder]: START")
 
         #self.process = subprocess.Popen(['sudo','tcpdump','-w',self.uri])
-        cmd = f"tcpdump-recorder {self.pcap_args} -w {self.uri}"
+        cmd = f"tcpdump-tul {self.pcap_args} -w {self.uri}"
         args = shlex.split(cmd)
         self.process = subprocess.Popen(args,stderr=open(self.uri + '.log', 'wb'),text=True)
 
