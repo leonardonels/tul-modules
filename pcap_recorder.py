@@ -18,7 +18,7 @@ class pcap_recorder(IModule):
 
     def _module_init(self) -> None:
         if self._debug:
-            self._node.get_logger().info("[pcap_recorder] [DEBUG]: INIT")
+            self._node.get_logger().info("[pcap_recorder]: INIT")
 
 #       ===== PCAP INIT =====
         self.pcap_dir = self.if_exists_return_value('pcap_dir', self.config, "/home/orin/logs/july-2026/pcap/")
@@ -30,7 +30,7 @@ class pcap_recorder(IModule):
         self.module_stop = False
 
         # check if args contains illegal arguments
-        if re.search(r"(^|\s)-w(\s|=|$)", self.pcap_args):
+        if self.pcap_args != None and "-w" in self.pcap_args:
             self._node.get_logger().error("[pcap_recorder]: illegal arg in pcap_args. Specify pcap output filename inside pcap_name, not inside the pcap_args")
 
         # set pcap uri
@@ -74,7 +74,7 @@ class pcap_recorder(IModule):
 
     def _module_stop(self) -> None:
         if self._debug:
-            self._node.get_logger().info("[pcap_recorder]: stop")
+            self._node.get_logger().info("[pcap_recorder]: STOP")
         
         self.module_stop = True
 

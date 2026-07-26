@@ -5,13 +5,14 @@ import os
 import subprocess
 import threading
 import shlex
-import re
 
 from modules.imodule import AsState, IModule
 
 class bag_recorder(IModule):
     def __init__(self, debug: bool, start_state: AsState, config: dict, node) -> None:
         super().__init__(debug, start_state, config, node)
+
+        self.config = config
 
     def _module_init(self) -> None:
         if self._debug:
@@ -20,23 +21,20 @@ class bag_recorder(IModule):
 #       ===== BAG INIT =====
         
         # init variables
-        self.bag_dir = self.if_exists_return_value('bag_dir', config, "./bag/")
-        self.bag_name = self.if_exists_return_value('bag_name', config, "./bag/")
-        self.timestamp_format = self.if_exists_return_value('date_format', config, "%Y%m%d_%H%M%S")
-        self.use_id = self.if_exists_return_value('enable_ids', config, False)
-        self.qos_path = self.if_exists_return_value('qos_profile_path', config, "")
-        self.qos_profile = "" if self.qos_path == "" else "--qos-profile-overrides-path " + str(self.qos_path)
-        self.bag_args = self.if_exists_return_value('bag_args', config, "")
-        self.bag_topics = self.if_exists_return_value('topics', config, "")
+        self.bag_dir = self.if_exists_return_value('bag_dir', self.config, "./bag/")
+        self.bag_name = self.if_exists_return_value('bag_name', self.config, "./bag/")
+        self.timestamp_format = self.if_exists_return_value('date_format', self.config, "%Y%m%d_%H%M%S")
+        self.use_id = self.if_exists_return_value('enable_ids', self.config, False)
+        self.qos_path = self.if_exists_return_value('qos_profile_path', self.config, "")
+        self.qos_profile = "--qos-profile-overrides-path " + str(self.qos_path) if self.qos_path != None and os.path.exists(self.qos_path) else ""
+        self.bag_args = self.if_exists_return_value('bag_args', self.config, "")
+        self.bag_topics = self.if_exists_return_value('topics', self.config, "")
 
         # set state
         self.module_stop = False
 
         # check if args contains illegal arguments
-        if re.match("*topics*", self.bag_args):
-            self._node.get_logger().error("[bag_recorder]: illegal arg in bag_args. Specify topic list inside topics, not inside the bag_args")
-        
-        if re.match("*-o *", self.bag_args):
+        if self.bag_args != None and "-o" in self.bag_args:
             self._node.get_logger().error("[bag_recorder]: illegal arg in bag_args. Specify bag output filename inside bag_name, not inside the bag_args")
 
         # set bag uri
@@ -65,7 +63,7 @@ class bag_recorder(IModule):
         os.makedirs(self.bag_dir, exist_ok=True)
 
         if self._debug:
-            self._node.get_logger().info(f"[bag_recorder]: bag uri: {self.uri}")
+            self._node.get_logger().info(f"[bag_recorder] [DEBUG]: bag uri: {self.uri}")
 
 
 
@@ -73,12 +71,12 @@ class bag_recorder(IModule):
         if self._debug:
             self._node.get_logger().info("[bag_recorder]: START")
 
-        cmd = f"ros2 bag record {self.bag_args} {self.qos_profile} -o {self.uri} {self.bag_topics}"
+        cmd = f"ros2 bag record {self.bag_topics} {self.bag_args} {self.qos_profile} -o {self.uri}"
         args = shlex.split(cmd)
         self.process = subprocess.Popen(args, stderr=open(self.uri + '.log', 'wb'), text=True)
 
         if self._debug:
-            self._node.get_logger().info("[bag_recorder]: subprocess created")
+            self._node.get_logger().info("[bag_recorder] [DEBUG]: subprocess created")
         
         self.monitor_thread = threading.Thread(target=self.monitor_callback,daemon=True)
         self.monitor_thread.start()
@@ -86,7 +84,7 @@ class bag_recorder(IModule):
 
     def _module_stop(self) -> None:
         if self._debug:
-            self._node.get_logger().info("[bag_recorder]: stop")
+            self._node.get_logger().info("[bag_recorder]: STOP")
 
         self.module_stop = True
 
