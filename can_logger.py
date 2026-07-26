@@ -7,18 +7,8 @@ import time
 import can
 
 class CanLogger(IModule):
-    def __init__(
-            self, 
-            debug: bool, 
-            start_state: AsState, 
-            config: dict, 
-            node
-            ) -> None:
-
-        super().__init__(debug, 
-                         start_state, 
-                         config, 
-                         node)
+    def __init__(self, debug: bool, start_state: AsState, config: dict, node) -> None:
+        super().__init__(debug, start_state, config, node)
 
         # ======= config ========
         self.log_dir = config['output_path']
@@ -30,10 +20,10 @@ class CanLogger(IModule):
 
     def _module_init(self) -> None:
         if self._debug:
-            self._logger.info("[can_recorder]: INIT")
+            self._node.get_logger().info("[can_logger]: INIT")
 
         if not os.path.exists(self.log_dir):
-            self._node.get_logger().error(f"[can_recorder]: log's path doesn't exist. Path: {self.log_dir}")
+            self._node.get_logger().error(f"[can_logger]: log's path doesn't exist. Path: {self.log_dir}")
             return
 
         self.timestamp: datetime
@@ -41,11 +31,11 @@ class CanLogger(IModule):
         # Set pcap URI
         if self.log_dir[-1] != "/":
             self.log_dir = self.log_dir+"/"
-            self._node.get_logger().warn(f"[can_recorder]: invalid log dir, must end with '/', saving as {self.log_dir}")
+            self._node.get_logger().warn(f"[can_logger]: invalid log dir, must end with '/', saving as {self.log_dir}")
 
         if "/" in self.log_name:
             self.log_name = self.log_name.split("/")[-1]
-            self._node.get_logger().warn(f"[can_recorder]: invalid log name, '/' not permitted, saving ad {self.log_name}")
+            self._node.get_logger().warn(f"[can_logger]: invalid log name, '/' not permitted, saving ad {self.log_name}")
         
         self.uri = self.log_dir + self.log_name
 
@@ -62,7 +52,7 @@ class CanLogger(IModule):
     
     def _module_start(self) -> None:
         if self._debug:
-            self._logger.info("[can_recorder]: START")
+            self._logger.info("[can_logger]: START")
 
         with can.Bus(
             interface="socketcan", channel=self.interface, bitrate=self.bitrate
@@ -75,7 +65,7 @@ class CanLogger(IModule):
 
     def _module_stop(self) -> None:
         if self._debug:
-            self._logger.info("[can_recorder]: STOP")
+            self._logger.info("[can_logger]: STOP")
         
         self.module_stop = True
 
