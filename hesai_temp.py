@@ -1,5 +1,5 @@
 from .imodule import IModule, AsState
-from .csv_logger import CsvLogger
+from .csv_helper import CsvLogger
 from diagnostic_msgs.msg import DiagnosticArray
 from rclpy.qos import qos_profile_sensor_data
 

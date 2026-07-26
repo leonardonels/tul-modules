@@ -1,5 +1,5 @@
 from .imodule import IModule, AsState
-from .csv_logger import CsvLogger
+from .csv_helper import CsvLogger
 from jtop import jtop
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32
