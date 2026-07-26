@@ -95,9 +95,6 @@ fi
 # update and install python-can requirements
 pip install python-can
 ```
-```bash
-python3 -m pip install --user --upgrade "typing_extensions>=4.10"
-```
 
 # TODO:
 - [ ] allow the eventual orchestrator to kill this node to - no selftdestruction

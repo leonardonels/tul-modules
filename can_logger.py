@@ -3,7 +3,6 @@ from .imodule import IModule, AsState
 from datetime import datetime
 import glob
 import os
-import time
 import can
 
 class CanLogger(IModule):
@@ -22,20 +21,16 @@ class CanLogger(IModule):
         if self._debug:
             self._node.get_logger().info("[can_logger]: INIT")
 
-        if not os.path.exists(self.log_dir):
-            self._node.get_logger().error(f"[can_logger]: log's path doesn't exist. Path: {self.log_dir}")
-            return
-
         self.timestamp: datetime
 
-        # Set pcap URI
+        # Set candump URI
         if self.log_dir[-1] != "/":
             self.log_dir = self.log_dir+"/"
             self._node.get_logger().warn(f"[can_logger]: invalid log dir, must end with '/', saving as {self.log_dir}")
 
         if "/" in self.log_name:
             self.log_name = self.log_name.split("/")[-1]
-            self._node.get_logger().warn(f"[can_logger]: invalid log name, '/' not permitted, saving ad {self.log_name}")
+            self._node.get_logger().warn(f"[can_logger]: invalid log name, '/' not permitted, saving as {self.log_name}")
         
         self.uri = self.log_dir + self.log_name
 
@@ -52,22 +47,30 @@ class CanLogger(IModule):
     
     def _module_start(self) -> None:
         if self._debug:
-            self._logger.info("[can_logger]: START")
+            self._node.get_logger().info("[can_logger]: START")
 
-        with can.Bus(
-            interface="socketcan", channel=self.interface, bitrate=self.bitrate
-        ) as bus:
-            logger = can.CanutilsLogWriter(self.log_dir, append=True)
+        if not os.path.exists(self.log_dir):
+            self._node.get_logger().error(f"[can_logger]: log's directory doesn't exist. Path: {self.log_dir}")
+            return
 
-            with can.Notifier(bus, [logger]):
-                time.sleep(1.0)
+        self._log_file = open(self.uri, 'w')
+        self._bus = can.Bus(
+            interface='socketcan', channel=self.interface, bitrate=self.bitrate
+        )
+        logger = can.CanutilsLogWriter(self._log_file, append=True)
+        self._notifier = can.Notifier(self._bus, [logger])
 
 
     def _module_stop(self) -> None:
         if self._debug:
-            self._logger.info("[can_logger]: STOP")
-        
-        self.module_stop = True
+            self._node.get_logger().info("[can_logger]: STOP")
+
+        if hasattr(self, "_notifier"):
+            self._notifier.stop()
+        if hasattr(self, "_bus"):
+            self._bus.shutdown()
+        if hasattr(self, "_log_file"):
+            self._log_file.close()
 
     
     def get_candump_id(self):
